@@ -17,6 +17,11 @@ type SecondaryNavItem = {
 	className?: string;
 };
 
+type MobileNavItem = {
+	label: string;
+	href: string;
+};
+
 const PRIMARY_NAV_ITEMS: ReadonlyArray<PrimaryNavItem> = [
 	{ menu: "dusk", label: "DUSK", href: "/dusk" },
 	{ menu: "dawn", label: "DAWN", href: "/dawn" },
@@ -33,6 +38,18 @@ const SECONDARY_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
 	{ label: "Sign In", href: "/signin" },
 ];
 
+const MOBILE_NAV_ITEMS: ReadonlyArray<MobileNavItem> = [
+	{ label: "DUSK", href: "/dusk" },
+	{ label: "DAWN", href: "/dawn" },
+	{ label: "GEARS", href: "/gears" },
+	{ label: "DEMO DRIVE", href: "/demo" },
+];
+
+const MOBILE_SIGN_IN_ITEM: MobileNavItem = {
+	label: "SIGN IN",
+	href: "/signin",
+};
+
 /**
  * Gears card data lives in one place so updates are simple:
  * - move text with `textAnchor` + optional offsets
@@ -44,7 +61,7 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 		label: "Autonomous",
 		href: "/gears/autonomous",
 		className: "nav-gears-card-autonomous",
-			backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/placeholder.png",
 		backgroundPosition: "right 20% center",
 		textAnchor: "top-center",
 		textSize: "3rem",
@@ -56,7 +73,7 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 		label: "Services",
 		href: "/gears/services",
 		className: "nav-gears-card-services",
-			backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/placeholder.png",
 		backgroundPosition: "left 20% center",
 		textAnchor: "bottom-left",
 		textSize: "1.6rem",
@@ -68,7 +85,7 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 		label: "Chargers",
 		href: "/gears/chargers",
 		className: "nav-gears-card-chargers",
-			backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/placeholder.png",
 		backgroundPosition: "center",
 		textAnchor: "bottom-left",
 		textSize: "1.6rem",
@@ -81,13 +98,15 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 /**
  * Global top navigation with:
  * 1) scroll-aware shell style + hide/show behavior
- * 2) hover/focus driven mega menus
- * 3) delayed close logic for better pointer usability
+ * 2) hover/focus driven desktop mega menus
+ * 3) mobile toggle menu under 1100px
  */
 class Navbar extends View<"nav"> {
 	private static readonly SCROLL_THRESHOLD_PX = 12;
 	private static readonly MIN_SCROLL_DELTA_PX = 6;
 	private static readonly MENU_CLOSE_DELAY_MS = 100;
+	private static readonly MOBILE_BREAKPOINT_PX = 1100;
+	private static readonly MOBILE_MENU_PANEL_ID = "nav-mobile-panel";
 	private static readonly MENU_NAMES = new Set<NavMenuName>([
 		"dusk",
 		"dawn",
@@ -97,6 +116,8 @@ class Navbar extends View<"nav"> {
 		".nav-menu-trigger",
 		".nav-link",
 		".nav-mega-link",
+		".nav-mobile-link",
+		".nav-mobile-top-sign-in",
 	].join(", ");
 
 	private static isNavMenuName(
@@ -159,10 +180,14 @@ class Navbar extends View<"nav"> {
 	private lastScrollY = 0;
 
 	/**
-	 * Currently open mega menu.
-	 * Mirrored into `data-active-menu` so CSS can show matching panel declaratively.
+	 * Currently open desktop mega menu.
 	 */
 	private activeMenu: NavMenuName | null = null;
+
+	/**
+	 * Mobile menu expanded state.
+	 */
+	private isMobileMenuOpen = false;
 
 	/**
 	 * Last route path used to mark active navbar links.
@@ -189,9 +214,11 @@ class Navbar extends View<"nav"> {
 		// Sync initial scroll state so the first paint matches current position.
 		this.lastScrollY = window.scrollY;
 		this.updateScrolledState();
+		this.syncMobileMenuUi();
 
-		// Global listeners for scroll behavior and mega menu interactions.
+		// Global listeners for scroll behavior and menu interactions.
 		this.cleanup.on(window, "scroll", this.handleScroll, { passive: true });
+		this.cleanup.on(window, "resize", this.handleResize, { passive: true });
 		this.cleanup.on(this.element, "pointerover", this.handleMenuPointerOver);
 		this.cleanup.on(this.element, "focusin", this.handleMenuFocusIn);
 		this.cleanup.on(this.element, "click", this.handleMenuClick);
@@ -207,25 +234,39 @@ class Navbar extends View<"nav"> {
 
 	setCurrentPath(path: string): void {
 		const normalizedPath = Navbar.toInternalPath(path) ?? "/";
-		if (normalizedPath === this.currentPath) {
-			return;
+		if (normalizedPath !== this.currentPath) {
+			this.currentPath = normalizedPath;
+			this.syncActivePageLinks();
 		}
 
-		this.currentPath = normalizedPath;
-		this.syncActivePageLinks();
+		this.setMobileMenuOpen(false);
 	}
 
 	/**
 	 * Markup structure:
-	 * - `nav-grid`: top row with left menu triggers, centered logo, right utility links.
-	 * - `nav-mega-stack`: all mega panels (only one visible at a time via CSS selectors).
+	 * - `nav-grid`: top row with desktop links and mobile toggle.
+	 * - `nav-mobile-panel`: mobile expanded menu content.
+	 * - `nav-mega-stack`: desktop mega panels.
 	 */
 	render(): DocumentFragment {
 		return this.tpl`
 			<div class="nav-inner">
 				<ul class="nav-grid">
-					<!-- Left: primary triggers that open mega menus -->
-					<li>
+					<!-- Left: mobile toggle + desktop primary triggers -->
+					<li class="nav-grid-start">
+						<button
+							class="nav-mobile-toggle"
+							type="button"
+							aria-label="Open navigation menu"
+							aria-expanded="false"
+							aria-controls="${Navbar.MOBILE_MENU_PANEL_ID}"
+						>
+							<span class="nav-mobile-toggle-icon" aria-hidden="true">
+								<span class="nav-mobile-toggle-line"></span>
+								<span class="nav-mobile-toggle-line"></span>
+							</span>
+						</button>
+
 						<ul class="nav-links nav-links-primary">
 							${PRIMARY_NAV_ITEMS.map(
 								(item) => this.tpl`
@@ -243,14 +284,14 @@ class Navbar extends View<"nav"> {
 					</li>
 
 					<!-- Center: brand/logo -->
-					<li>
+					<li class="nav-grid-center">
 						<a class="nav-logo" href="/" aria-label="3AM home">
 							<img class="nav-logo-image" src="/assets/nav/logo.svg" alt="3AM" />
 						</a>
 					</li>
 
-					<!-- Right: utility actions that do not open mega menus -->
-					<li>
+					<!-- Right: desktop utility actions -->
+					<li class="nav-grid-end">
 						<ul class="nav-links nav-links-end">
 							${SECONDARY_NAV_ITEMS.map(
 								(item) => this.tpl`
@@ -267,15 +308,42 @@ class Navbar extends View<"nav"> {
 								`,
 							)}
 						</ul>
-					</li>
-				</ul>
+							${new Button({
+								label: MOBILE_SIGN_IN_ITEM.label,
+								className: "nav-mobile-top-sign-in",
+								variant: "outline",
+								href: MOBILE_SIGN_IN_ITEM.href,
+							})}
+						</li>
+					</ul>
 
-					<div class="nav-mega-stack">
-						<!-- Dusk mega panel -->
-						<section class="nav-mega" data-menu="dusk" aria-label="Dusk menu">
-							<div class="nav-mega-links">
-								<p class="nav-mega-title">Dusk</p>
-								<ul class="nav-mega-list">
+				<div
+					class="nav-mobile-panel"
+					id="${Navbar.MOBILE_MENU_PANEL_ID}"
+					aria-hidden="true"
+				>
+					<ul class="nav-mobile-list">
+						${MOBILE_NAV_ITEMS.map(
+							(item) => this.tpl`
+								<li>
+									${new Button({
+										label: item.label,
+										className: "nav-mobile-link",
+										variant: "text",
+										href: item.href,
+									})}
+								</li>
+							`,
+						)}
+					</ul>
+				</div>
+
+				<div class="nav-mega-stack">
+					<!-- Dusk mega panel -->
+					<section class="nav-mega" data-menu="dusk" aria-label="Dusk menu">
+						<div class="nav-mega-links">
+							<p class="nav-mega-title">Dusk</p>
+							<ul class="nav-mega-list">
 								<li><a class="nav-mega-link" href="/dusk/explore">Explore</a></li>
 								<li><a class="nav-mega-link" href="/dusk/buy">Buy</a></li>
 								<li><a class="nav-mega-link" href="/dusk/demo">Demo Drive</a></li>
@@ -288,23 +356,23 @@ class Navbar extends View<"nav"> {
 								alt="Dusk showcase"
 								loading="lazy"
 							/>
-								<div class="nav-mega-overlay" aria-hidden="true">
-									<span class="nav-mega-overlay-model">
-										<span class="nav-mega-overlay-model-label">MODEL</span>
-										<span class="nav-mega-overlay-model-name">DUSK</span>
-									</span>
-									<span class="nav-mega-overlay-price">
-										<span class="nav-mega-overlay-price-label">Starting at</span>
-										<span class="nav-mega-overlay-price-value">$82,990</span>
-									</span>
-								</div>
-								</a>
-						</section>
+							<div class="nav-mega-overlay" aria-hidden="true">
+								<span class="nav-mega-overlay-model">
+									<span class="nav-mega-overlay-model-label">MODEL</span>
+									<span class="nav-mega-overlay-model-name">DUSK</span>
+								</span>
+								<span class="nav-mega-overlay-price">
+									<span class="nav-mega-overlay-price-label">Starting at</span>
+									<span class="nav-mega-overlay-price-value">$82,990</span>
+								</span>
+							</div>
+						</a>
+					</section>
 
-						<!-- Dawn mega panel -->
-						<section class="nav-mega" data-menu="dawn" aria-label="Dawn menu">
-							<div class="nav-mega-links">
-								<p class="nav-mega-title">Dawn</p>
+					<!-- Dawn mega panel -->
+					<section class="nav-mega" data-menu="dawn" aria-label="Dawn menu">
+						<div class="nav-mega-links">
+							<p class="nav-mega-title">Dawn</p>
 							<ul class="nav-mega-list">
 								<li><a class="nav-mega-link" href="/dawn/explore">Explore</a></li>
 								<li><a class="nav-mega-link" href="/dawn/buy">Buy</a></li>
@@ -323,38 +391,38 @@ class Navbar extends View<"nav"> {
 									<span class="nav-mega-overlay-model-label">MODEL</span>
 									<span class="nav-mega-overlay-model-name">DAWN</span>
 								</span>
-									<span class="nav-mega-overlay-price">
-										<span class="nav-mega-overlay-price-label">Starting at</span>
-										<span class="nav-mega-overlay-price-value">$45,000</span>
-									</span>
-								</div>
-							</a>
-						</section>
-
-						<!-- Gears mega panel -->
-						<section class="nav-mega" data-menu="gears" aria-label="Gears menu">
-							<div class="nav-mega-links">
-								<p class="nav-mega-title">Gears</p>
-								<ul class="nav-mega-list">
-									<li>
-										<a class="nav-mega-link" href="/gears/all">All</a>
-									</li>
-									<li>
-										<a class="nav-mega-link" href="/gears/wheels">Wheels</a>
-									</li>
-									<li><a class="nav-mega-link" href="/gears/chargers">Chargers</a></li>
-									<li><a class="nav-mega-link" href="/gears/services">Services</a></li>
-								</ul>
+								<span class="nav-mega-overlay-price">
+									<span class="nav-mega-overlay-price-label">Starting at</span>
+									<span class="nav-mega-overlay-price-value">$45,000</span>
+								</span>
 							</div>
+						</a>
+					</section>
 
-							<!-- Card-based media area for gears -->
-							<div class="nav-gears-grid" aria-label="Featured gear cards">
-								${GEARS_CARDS.map((card) => new MediaCard(card))}
-							</div>
-						</section>
-					</div>
+					<!-- Gears mega panel -->
+					<section class="nav-mega" data-menu="gears" aria-label="Gears menu">
+						<div class="nav-mega-links">
+							<p class="nav-mega-title">Gears</p>
+							<ul class="nav-mega-list">
+								<li>
+									<a class="nav-mega-link" href="/gears/all">All</a>
+								</li>
+								<li>
+									<a class="nav-mega-link" href="/gears/wheels">Wheels</a>
+								</li>
+								<li><a class="nav-mega-link" href="/gears/chargers">Chargers</a></li>
+								<li><a class="nav-mega-link" href="/gears/services">Services</a></li>
+							</ul>
+						</div>
+
+						<!-- Card-based media area for gears -->
+						<div class="nav-gears-grid" aria-label="Featured gear cards">
+							${GEARS_CARDS.map((card) => new MediaCard(card))}
+						</div>
+					</section>
 				</div>
-			`;
+			</div>
+		`;
 	}
 
 	/**
@@ -365,6 +433,12 @@ class Navbar extends View<"nav"> {
 		this.updateVisibilityState();
 	};
 
+	private readonly handleResize = (): void => {
+		if (this.isDesktopViewport()) {
+			this.setMobileMenuOpen(false);
+		}
+	};
+
 	/**
 	 * Pointer behavior:
 	 * - Hovering a trigger opens that trigger's panel.
@@ -372,6 +446,10 @@ class Navbar extends View<"nav"> {
 	 * - Hovering other nav zones (logo/right links) starts delayed close.
 	 */
 	private readonly handleMenuPointerOver = (event: Event): void => {
+		if (!this.isDesktopViewport()) {
+			return;
+		}
+
 		const target = event.target;
 		if (!(target instanceof Element)) {
 			return;
@@ -403,6 +481,10 @@ class Navbar extends View<"nav"> {
 	 * focusing any trigger opens the same mega panel as pointer hover.
 	 */
 	private readonly handleMenuFocusIn = (event: FocusEvent): void => {
+		if (!this.isDesktopViewport()) {
+			return;
+		}
+
 		const target = event.target;
 		if (!(target instanceof Element)) {
 			return;
@@ -423,13 +505,34 @@ class Navbar extends View<"nav"> {
 	};
 
 	/**
-	 * Clicking inside the mega panel closes it only for actionable targets
-	 * (links/images wrapped in links), not empty panel space.
+	 * Handles both mobile toggle/menu clicks and desktop mega-panel close behavior.
 	 */
 	private readonly handleMenuClick = (event: MouseEvent): void => {
 		const target = event.target;
 		if (!(target instanceof Element)) {
 			return;
+		}
+
+		const mobileToggle =
+			target.closest<HTMLButtonElement>(".nav-mobile-toggle");
+		if (mobileToggle) {
+			this.setMobileMenuOpen(!this.isMobileMenuOpen);
+			return;
+		}
+
+		if (target.closest(".nav-mobile-panel a[href]")) {
+			this.setMobileMenuOpen(false);
+			return;
+		}
+		if (target.closest(".nav-mobile-top-sign-in")) {
+			this.setMobileMenuOpen(false);
+			return;
+		}
+
+		const clickedLink = target.closest<HTMLAnchorElement>("a[href]");
+		if (clickedLink && event.detail > 0) {
+			// Prevent persistent :focus-within styling after mouse clicks.
+			clickedLink.blur();
 		}
 
 		if (!target.closest(".nav-mega")) {
@@ -447,12 +550,16 @@ class Navbar extends View<"nav"> {
 	 * Start delayed close when leaving nav with pointer.
 	 */
 	private readonly handleMenuPointerLeave = (): void => {
+		if (!this.isDesktopViewport()) {
+			return;
+		}
+
 		this.scheduleMenuClose();
 	};
 
 	/**
 	 * For keyboard users:
-	 * close the mega menu only after focus has truly left the whole nav.
+	 * close menus only after focus has truly left the whole nav.
 	 */
 	private readonly handleMenuFocusOut = (event: FocusEvent): void => {
 		const relatedTarget = event.relatedTarget;
@@ -467,11 +574,12 @@ class Navbar extends View<"nav"> {
 			}
 
 			// Pointer clicks on non-focusable space inside the mega panel can move
-			// focus to <body>. Keep the panel open while the pointer is still over nav.
-			if (this.element.matches(":hover")) {
+			// focus to <body>. Keep desktop panel open while the pointer is still over nav.
+			if (this.isDesktopViewport() && this.element.matches(":hover")) {
 				return;
 			}
 
+			this.setMobileMenuOpen(false);
 			this.clearActiveMenu();
 		});
 	};
@@ -496,6 +604,11 @@ class Navbar extends View<"nav"> {
 		const currentScrollY = window.scrollY;
 		const deltaY = currentScrollY - this.lastScrollY;
 		this.lastScrollY = currentScrollY;
+
+		if (this.isMobileMenuOpen) {
+			this.setHidden(false);
+			return;
+		}
 
 		// At top of page, navbar is always visible.
 		if (currentScrollY <= Navbar.SCROLL_THRESHOLD_PX) {
@@ -571,6 +684,48 @@ class Navbar extends View<"nav"> {
 
 		window.clearTimeout(this.closeMenuTimerId);
 		this.closeMenuTimerId = null;
+	}
+
+	private setMobileMenuOpen(open: boolean): void {
+		if (open && this.isDesktopViewport()) {
+			return;
+		}
+
+		if (open === this.isMobileMenuOpen) {
+			return;
+		}
+
+		this.isMobileMenuOpen = open;
+		this.element.classList.toggle("is-mobile-open", open);
+		if (open) {
+			this.setHidden(false);
+			this.clearActiveMenu();
+		}
+
+		this.syncMobileMenuUi();
+	}
+
+	private syncMobileMenuUi(): void {
+		const toggle =
+			this.element.querySelector<HTMLButtonElement>(".nav-mobile-toggle");
+		if (toggle) {
+			toggle.setAttribute("aria-expanded", String(this.isMobileMenuOpen));
+			toggle.setAttribute(
+				"aria-label",
+				this.isMobileMenuOpen
+					? "Close navigation menu"
+					: "Open navigation menu",
+			);
+		}
+
+		const panel = this.element.querySelector<HTMLElement>(".nav-mobile-panel");
+		if (panel) {
+			panel.setAttribute("aria-hidden", String(!this.isMobileMenuOpen));
+		}
+	}
+
+	private isDesktopViewport(): boolean {
+		return window.innerWidth >= Navbar.MOBILE_BREAKPOINT_PX;
 	}
 
 	private syncActivePageLinks(): void {
