@@ -16,7 +16,7 @@ describe("MediaCard", () => {
 		const card = new MediaCard({
 			label: "Services",
 			href: "/gears/services",
-				backgroundImage: "/assets/shared/placeholder.png",
+			backgroundImage: "/assets/shared/placeholder.png",
 		}).renderToNode();
 
 		expect(card.tagName.toLowerCase()).toBe("a");
@@ -24,13 +24,13 @@ describe("MediaCard", () => {
 		expect(card.getAttribute("href")).toBe("/gears/services");
 		expect(card.dataset.overlay).toBe("on");
 		expect(card.getAttribute("style")).toContain(
-				'--media-card-bg-image: url("/assets/shared/placeholder.png")',
+			'--media-card-bg-image: url("/assets/shared/placeholder.png")',
 		);
 		expect(card.getAttribute("style")).toContain(
 			"--media-card-bg-position: center",
 		);
 
-		const label = card.querySelector(".media-card-label");
+		const label = card.querySelector<HTMLSpanElement>(".media-card-label");
 		expect(label).not.toBeNull();
 		expect(label?.dataset.anchor).toBe("bottom-left");
 		expect(label?.textContent).toBe("Services");
@@ -61,7 +61,7 @@ describe("MediaCard", () => {
 			"--media-card-bg-position: right 20% center",
 		);
 
-		const label = card.querySelector(".media-card-label");
+		const label = card.querySelector<HTMLSpanElement>(".media-card-label");
 		expect(label?.dataset.anchor).toBe("top-center");
 		expect(label?.getAttribute("style")).toContain(
 			"--media-card-text-size: 2rem",

@@ -37,11 +37,16 @@ describe("Navbar", () => {
 			node,
 			'.nav-menu-trigger[href="/dawn"]',
 		);
+		const duskMobileLink = queryRequired<HTMLAnchorElement>(
+			node,
+			'.nav-mobile-link[href="/dusk"]',
+		);
 
 		expect(duskTrigger.classList.contains("is-active-page")).toBe(true);
 		expect(duskTrigger.getAttribute("aria-current")).toBe("page");
 		expect(dawnTrigger.classList.contains("is-active-page")).toBe(false);
 		expect(dawnTrigger.hasAttribute("aria-current")).toBe(false);
+		expect(duskMobileLink.classList.contains("is-active-page")).toBe(true);
 	});
 
 	test("marks parent and nested links as active for deep route", () => {
@@ -81,5 +86,126 @@ describe("Navbar", () => {
 
 		navbar.setCurrentPath("https://other.example.com/dawn");
 		expect(node.querySelectorAll(".is-active-page")).toHaveLength(0);
+	});
+
+	test("toggles mobile menu state and aria attributes from hamburger button", () => {
+		window.innerWidth = 1024;
+		const navbar = new Navbar();
+		navbar.mount(document.body);
+
+		const shell = queryRequired<HTMLElement>(document, ".nav-shell");
+		const toggle = queryRequired<HTMLButtonElement>(
+			document,
+			".nav-mobile-toggle",
+		);
+		const toggleLines = toggle.querySelectorAll(".nav-mobile-toggle-line");
+		const panel = queryRequired<HTMLElement>(document, ".nav-mobile-panel");
+
+		expect(toggleLines).toHaveLength(2);
+		expect(shell.classList.contains("is-mobile-open")).toBe(false);
+		expect(toggle.getAttribute("aria-expanded")).toBe("false");
+		expect(panel.getAttribute("aria-hidden")).toBe("true");
+
+		toggle.click();
+
+		expect(shell.classList.contains("is-mobile-open")).toBe(true);
+		expect(toggle.getAttribute("aria-expanded")).toBe("true");
+		expect(panel.getAttribute("aria-hidden")).toBe("false");
+
+		toggle.click();
+
+		expect(shell.classList.contains("is-mobile-open")).toBe(false);
+		expect(toggle.getAttribute("aria-expanded")).toBe("false");
+		expect(panel.getAttribute("aria-hidden")).toBe("true");
+	});
+
+	test("does not open mobile menu when viewport is desktop width", () => {
+		window.innerWidth = 1300;
+		const navbar = new Navbar();
+		navbar.mount(document.body);
+
+		const shell = queryRequired<HTMLElement>(document, ".nav-shell");
+		const toggle = queryRequired<HTMLButtonElement>(
+			document,
+			".nav-mobile-toggle",
+		);
+
+		toggle.click();
+
+		expect(shell.classList.contains("is-mobile-open")).toBe(false);
+		expect(toggle.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	test("closes mobile menu after selecting a mobile nav link", () => {
+		window.innerWidth = 1024;
+		const navbar = new Navbar();
+		navbar.mount(document.body);
+
+		const shell = queryRequired<HTMLElement>(document, ".nav-shell");
+		const toggle = queryRequired<HTMLButtonElement>(
+			document,
+			".nav-mobile-toggle",
+		);
+		const dawnMobileLink = queryRequired<HTMLAnchorElement>(
+			document,
+			'.nav-mobile-link[href="/dawn"]',
+		);
+
+		toggle.click();
+		expect(shell.classList.contains("is-mobile-open")).toBe(true);
+
+		dawnMobileLink.dispatchEvent(
+			new window.MouseEvent("click", { bubbles: true }),
+		);
+
+		expect(shell.classList.contains("is-mobile-open")).toBe(false);
+		expect(toggle.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	test("closes mobile menu after selecting top-right sign in", () => {
+		window.innerWidth = 1024;
+		const navbar = new Navbar();
+		navbar.mount(document.body);
+
+		const shell = queryRequired<HTMLElement>(document, ".nav-shell");
+		const toggle = queryRequired<HTMLButtonElement>(
+			document,
+			".nav-mobile-toggle",
+		);
+		const signInButton = queryRequired<HTMLAnchorElement>(
+			document,
+			'.nav-mobile-top-sign-in[href="/signin"]',
+		);
+		expect(signInButton.classList.contains("ui-button--outline")).toBe(true);
+
+		toggle.click();
+		expect(shell.classList.contains("is-mobile-open")).toBe(true);
+
+		signInButton.dispatchEvent(
+			new window.MouseEvent("click", { bubbles: true }),
+		);
+
+		expect(shell.classList.contains("is-mobile-open")).toBe(false);
+		expect(toggle.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	test("blurs clicked desktop nav link so background can clear after mouse leaves", () => {
+		window.innerWidth = 1300;
+		const navbar = new Navbar();
+		navbar.mount(document.body);
+
+		const duskTrigger = queryRequired<HTMLAnchorElement>(
+			document,
+			'.nav-menu-trigger[href="/dusk"]',
+		);
+
+		duskTrigger.focus();
+		expect(document.activeElement).toBe(duskTrigger);
+
+		duskTrigger.dispatchEvent(
+			new window.MouseEvent("click", { bubbles: true, detail: 1 }),
+		);
+
+		expect(document.activeElement).not.toBe(duskTrigger);
 	});
 });
