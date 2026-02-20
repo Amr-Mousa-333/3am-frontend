@@ -221,9 +221,9 @@ class Navbar extends View<"nav"> {
 		this.cleanup.on(window, "resize", this.handleResize, { passive: true });
 		this.cleanup.on(this.element, "pointerover", this.handleMenuPointerOver);
 		this.cleanup.on(this.element, "focusin", this.handleMenuFocusIn);
-		this.cleanup.on(this.element, "click", this.handleMenuClick);
 		this.cleanup.on(this.element, "pointerleave", this.handleMenuPointerLeave);
 		this.cleanup.on(this.element, "focusout", this.handleMenuFocusOut);
+		this.bindClickHandlers();
 
 		// Sync active-link state with the initial URL.
 		this.setCurrentPath(window.location.pathname);
@@ -504,46 +504,46 @@ class Navbar extends View<"nav"> {
 		this.setActiveMenu(menu);
 	};
 
-	/**
-	 * Handles both mobile toggle/menu clicks and desktop mega-panel close behavior.
-	 */
-	private readonly handleMenuClick = (event: MouseEvent): void => {
-		const target = event.target;
-		if (!(target instanceof Element)) {
-			return;
-		}
-
+	private bindClickHandlers(): void {
 		const mobileToggle =
-			target.closest<HTMLButtonElement>(".nav-mobile-toggle");
+			this.element.querySelector<HTMLButtonElement>(".nav-mobile-toggle");
 		if (mobileToggle) {
-			this.setMobileMenuOpen(!this.isMobileMenuOpen);
+			this.cleanup.on(mobileToggle, "click", this.handleMobileToggleClick);
+		}
+
+		const navLinks =
+			this.element.querySelectorAll<HTMLAnchorElement>("a[href]");
+		for (const link of navLinks) {
+			this.cleanup.on(link, "click", this.handleNavLinkClick);
+		}
+	}
+
+	private readonly handleMobileToggleClick = (): void => {
+		this.setMobileMenuOpen(!this.isMobileMenuOpen);
+	};
+
+	private readonly handleNavLinkClick = (event: MouseEvent): void => {
+		const link = event.currentTarget;
+		if (!(link instanceof HTMLAnchorElement)) {
 			return;
 		}
 
-		if (target.closest(".nav-mobile-panel a[href]")) {
-			this.setMobileMenuOpen(false);
-			return;
-		}
-		if (target.closest(".nav-mobile-top-sign-in")) {
-			this.setMobileMenuOpen(false);
-			return;
-		}
-
-		const clickedLink = target.closest<HTMLAnchorElement>("a[href]");
-		if (clickedLink && event.detail > 0) {
+		if (event.detail > 0) {
 			// Prevent persistent :focus-within styling after mouse clicks.
-			clickedLink.blur();
+			link.blur();
 		}
 
-		if (!target.closest(".nav-mega")) {
+		if (
+			link.closest(".nav-mobile-panel") ||
+			link.closest(".nav-mobile-top-sign-in")
+		) {
+			this.setMobileMenuOpen(false);
 			return;
 		}
 
-		if (!target.closest("a[href]")) {
-			return;
+		if (link.closest(".nav-mega")) {
+			this.clearActiveMenu();
 		}
-
-		this.clearActiveMenu();
 	};
 
 	/**

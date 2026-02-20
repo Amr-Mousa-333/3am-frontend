@@ -48,7 +48,7 @@ export const startApp = (): void => {
 		navbar.setCurrentPath(path);
 	});
 
-	app.addEventListener("click", (event) => {
+	document.addEventListener("click", (event) => {
 		const link = getInternalLink(event);
 		if (!link) return;
 
