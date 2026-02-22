@@ -44,6 +44,8 @@ render(): void {
 ## Tips
 - Keep sections scoped to one page.
 - Move shared blocks to `src/components`.
+- For heavy below-the-fold media, prefer `LazyImage`/`LazyVideo` components.
+- Use direct `data-lazy-*` only for advanced cases. See [Performance](performance.md).
 
 **Navigation**
 - Back to [Index](index.md)

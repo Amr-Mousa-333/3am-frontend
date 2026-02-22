@@ -21,10 +21,15 @@ Rules to keep code consistent and safe.
 
 ## Performance
 
-1. Use `loading="lazy"` and `decoding="async"` for images below the fold.
-2. Keep heavy work out of `render()` if it can run once in the constructor.
-3. Keep `render()` idempotent to avoid duplicate listeners or leaks.
+1. For below-the-fold media, prefer `LazyImage` and `LazyVideo` from `src/components`.
+2. Use direct `data-lazy-*` attributes only for advanced/custom cases (see `wiki/performance.md`).
+3. Keep `loading="lazy"` and `decoding="async"` on deferred images.
+4. Keep heavy work out of `render()` if it can run once in the constructor.
+5. Keep `render()` idempotent to avoid duplicate listeners or leaks.
+6. Run `bun run build:bundle && bun run budget` before opening a PR.
+7. If budgets increase, update the `size-limit` section in `package.json` with a clear reason.
 
 ## Navigation
 - Back to [Index](index.md)
 - Related: [Styling Guide](styles.md)
+- Related: [Performance](performance.md)
