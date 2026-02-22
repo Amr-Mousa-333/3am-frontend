@@ -3,7 +3,7 @@ import type { ViewInstance } from "@lib/view";
 
 type Route = {
 	title: string;
-	create: () => ViewInstance;
+	create: () => ViewInstance | Promise<ViewInstance>;
 };
 
 export type RouteMap = Record<string, Route>;
@@ -39,8 +39,10 @@ export const createRouter = (
 	onRouteChange?: (path: string) => void,
 ): Router => {
 	let current: ViewInstance | null = null;
+	let renderToken = 0;
 
-	const render = (): void => {
+	const render = async (): Promise<void> => {
+		const token = ++renderToken;
 		const path = window.location.pathname || "/";
 		const resolved = resolveRoute(path, routes);
 
@@ -62,32 +64,48 @@ export const createRouter = (
 
 		outlet.replaceChildren();
 
-		const view = resolved.route.create();
-		view.mount(outlet);
+		try {
+			const view = await resolved.route.create();
+			if (token !== renderToken) {
+				view.destroy();
+				return;
+			}
 
-		current = view;
-
-		onRouteChange?.(path);
+			view.mount(outlet);
+			current = view;
+			onRouteChange?.(path);
+		} catch (error) {
+			if (token !== renderToken) {
+				return;
+			}
+			outlet.replaceChildren();
+			console.error(`Failed to load route: ${path}`, error);
+		}
 	};
 
 	const navigate = (path: string): void => {
 		if (window.location.pathname !== path) {
 			window.history.pushState({}, "", path);
 		}
-		render();
+		void render();
 	};
 
 	const start = (): void => {
-		window.addEventListener("popstate", render);
-		render();
+		window.addEventListener("popstate", handlePopState);
+		void render();
 	};
 
 	const stop = (): void => {
-		window.removeEventListener("popstate", render);
+		window.removeEventListener("popstate", handlePopState);
+		renderToken += 1;
 		if (current) {
 			current.destroy();
 		}
 		current = null;
+	};
+
+	const handlePopState = (): void => {
+		void render();
 	};
 
 	return { start, stop, navigate };

@@ -14,5 +14,6 @@ Pages, sections, and reusable components all extend `View`.
 5. [Templates](templates.md) How to write markup with `html` and `this.tpl`.
 6. [Styling Guide](styles.md) Where styles live and how to add them.
 7. [Guidelines](guidelines.md) Rules to keep code consistent.
-8. [Testing](testing.md) When and how to add tests.
-9. [Contributing](contributing.md) Fork, edit, and open a pull request.
+8. [Performance](performance.md) Advanced lazyMedia module guide and CI budgets.
+9. [Testing](testing.md) When and how to add tests.
+10. [Contributing](contributing.md) Fork, edit, and open a pull request.

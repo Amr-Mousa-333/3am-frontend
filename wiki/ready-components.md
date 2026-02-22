@@ -10,7 +10,9 @@ Ready components are prebuilt UI pieces in `src/components` that you can use dir
 ## Available now
 
 1. `Button` from `src/components/button.ts`
-2. `MediaCard` from `src/components/media-card.ts`
+2. `MediaCard` from `src/components/mediaCard.ts`
+3. `LazyImage` from `src/components/lazyImage.ts`
+4. `LazyVideo` from `src/components/lazyVideo.ts`
 
 ## Button
 
@@ -119,7 +121,7 @@ link.renderToNode().classList.add("is-active-page");
 The media card component is a class used as `new MediaCard(config)`.
 
 ```ts
-import { MediaCard } from "@components/media-card";
+import { MediaCard } from "@components/mediaCard";
 ```
 
 ```ts
@@ -129,6 +131,75 @@ ${new MediaCard({
 	backgroundImage: "/assets/shared/placeholder.png",
 })}
 ```
+
+## LazyImage
+
+Use this for heavy images below the fold without manually writing `data-lazy-*`.
+
+```ts
+import { LazyImage } from "@components/lazyImage";
+```
+
+```ts
+render(): DocumentFragment {
+	return this.tpl`
+		<section class="page-section">
+			${new LazyImage({
+				src: "/assets/dusk/hero.webp",
+				alt: "Dusk hero",
+				className: "hero-image",
+			})}
+		</section>
+	`;
+}
+```
+
+Useful fields:
+- `src` real image URL (required).
+- `alt` alt text (required).
+- `className` optional extra classes.
+- `placeholderSrc` optional placeholder image.
+- `srcset` and `sizes` optional responsive image values.
+- `width` and `height` optional dimensions.
+
+## LazyVideo
+
+Use this for below-the-fold videos. It writes lazy source attributes for you.
+
+```ts
+import { LazyVideo } from "@components/lazyVideo";
+```
+
+```ts
+render(): DocumentFragment {
+	return this.tpl`
+		<section class="page-section">
+			${new LazyVideo({
+				poster: "/assets/dawn/video-poster.webp",
+				controls: true,
+				muted: true,
+				playsInline: true,
+				sources: [
+					{ src: "/assets/dawn/hero_video.webm", type: "video/webm" },
+				],
+			})}
+		</section>
+	`;
+}
+```
+
+Useful fields:
+- `sources` array of video sources (required).
+- `poster` optional real poster URL.
+- `placeholderPoster` optional placeholder poster.
+- `preload` optional preload mode (`"none"` default).
+- `controls`, `muted`, `loop`, `autoPlay`, `playsInline` optional flags.
+
+## Advanced lazyMedia guide
+
+For direct module-level lazy attributes (without components), see:
+
+- [Performance (Advanced lazyMedia Module Guide)](performance.md)
 
 **Navigation**
 - Back to [Index](index.md)

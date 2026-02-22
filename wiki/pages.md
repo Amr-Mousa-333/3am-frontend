@@ -32,12 +32,21 @@ export class AboutPage extends View<"div"> {
 ```
 
 ```ts
-import { AboutPage } from "@pages/about";
-import { NotFoundPage } from "@pages/notFound";
-
 export const routes = {
-	"/about": { title: "About", create: () => new AboutPage() },
-	"/404": { title: "Not found", create: () => new NotFoundPage() },
+	"/about": {
+		title: "About",
+		create: async () => {
+			const { AboutPage } = await import("@pages/about");
+			return new AboutPage();
+		},
+	},
+	"/404": {
+		title: "Not found",
+		create: async () => {
+			const { NotFoundPage } = await import("@pages/notFound");
+			return new NotFoundPage();
+		},
+	},
 };
 ```
 
