@@ -41,6 +41,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Build production bundle
+        run: bun run build:bundle
+
+      - name: Enforce performance budgets
+        run: bun run budget
+
       - name: Run tests (JUnit)
         id: run_tests
         continue-on-error: true
