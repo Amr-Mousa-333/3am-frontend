@@ -29,6 +29,11 @@ const PRIMARY_NAV_ITEMS: ReadonlyArray<PrimaryNavItem> = [
 ];
 
 const SECONDARY_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
+	// {  // cart link added to secondary nav for desktop view, as per design, but also consider adding to primary nav for better visibility and access
+  //   label: "🛒 Cart", 
+  //   href: "/cart",
+  //   className: "nav-link-cart" 
+  // },
 	{
 		label: "Demo Drive",
 		href: "/demo",
@@ -42,6 +47,7 @@ const MOBILE_NAV_ITEMS: ReadonlyArray<MobileNavItem> = [
 	{ label: "DUSK", href: "/dusk" },
 	{ label: "DAWN", href: "/dawn" },
 	{ label: "GEARS", href: "/gears" },
+	// { label: "CART", href: "/cart" }, // cart link added to mobile menu for easier access
 	{ label: "DEMO DRIVE", href: "/demo" },
 ];
 
