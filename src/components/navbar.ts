@@ -29,6 +29,11 @@ const PRIMARY_NAV_ITEMS: ReadonlyArray<PrimaryNavItem> = [
 ];
 
 const SECONDARY_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
+	// {  // cart link added to secondary nav for desktop view, as per design, but also consider adding to primary nav for better visibility and access
+  //   label: "🛒 Cart", 
+  //   href: "/cart",
+  //   className: "nav-link-cart" 
+  // },
 	{
 		label: "Demo Drive",
 		href: "/demo",
@@ -42,6 +47,7 @@ const MOBILE_NAV_ITEMS: ReadonlyArray<MobileNavItem> = [
 	{ label: "DUSK", href: "/dusk" },
 	{ label: "DAWN", href: "/dawn" },
 	{ label: "GEARS", href: "/gears" },
+	// { label: "CART", href: "/cart" }, // cart link added to mobile menu for easier access
 	{ label: "DEMO DRIVE", href: "/demo" },
 ];
 
@@ -237,11 +243,9 @@ class Navbar extends View<"nav"> {
 
 		// Sync active-link state with the initial URL.
 		this.setCurrentPath(window.location.pathname);
-	}
 
-	protected override onDestroy(): void {
-		// Why: this timeout is local component state, so clear it on teardown.
-		this.cancelMenuClose();
+		// Ensure any pending timer is cleared if this view is destroyed.
+		this.cleanup.add(() => this.cancelMenuClose());
 	}
 
 	setCurrentPath(path: string): void {
@@ -519,8 +523,11 @@ class Navbar extends View<"nav"> {
 	};
 
 	private bindClickHandlers(): void {
-		const mobileToggle = this.$<HTMLButtonElement>(".nav-mobile-toggle");
-		this.cleanup.on(mobileToggle, "click", this.handleMobileToggleClick);
+		const mobileToggle =
+			this.element.querySelector<HTMLButtonElement>(".nav-mobile-toggle");
+		if (mobileToggle) {
+			this.cleanup.on(mobileToggle, "click", this.handleMobileToggleClick);
+		}
 
 		const navLinks =
 			this.element.querySelectorAll<HTMLAnchorElement>("a[href]");
@@ -761,15 +768,22 @@ class Navbar extends View<"nav"> {
 	}
 
 	private syncMobileMenuUi(): void {
-		const toggle = this.$<HTMLButtonElement>(".nav-mobile-toggle");
-		toggle.setAttribute("aria-expanded", String(this.isMobileMenuOpen));
-		toggle.setAttribute(
-			"aria-label",
-			this.isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu",
-		);
+		const toggle =
+			this.element.querySelector<HTMLButtonElement>(".nav-mobile-toggle");
+		if (toggle) {
+			toggle.setAttribute("aria-expanded", String(this.isMobileMenuOpen));
+			toggle.setAttribute(
+				"aria-label",
+				this.isMobileMenuOpen
+					? "Close navigation menu"
+					: "Open navigation menu",
+			);
+		}
 
-		const panel = this.$<HTMLElement>(".nav-mobile-panel");
-		panel.setAttribute("aria-hidden", String(!this.isMobileMenuOpen));
+		const panel = this.element.querySelector<HTMLElement>(".nav-mobile-panel");
+		if (panel) {
+			panel.setAttribute("aria-hidden", String(!this.isMobileMenuOpen));
+		}
 	}
 
 	private isDesktopViewport(): boolean {

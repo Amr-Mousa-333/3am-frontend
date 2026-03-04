@@ -1,9 +1,15 @@
-import { wait } from "@lib/async";
-
+const BOOT_LOADER_SELECTOR = "#boot-loader";
+const BOOT_LEAVING_CLASS = "is-leaving";
 const BOOT_MIN_VISIBLE_MS = 320;
 const BOOT_FADE_OUT_MS = 220;
 const BOOT_MAX_WAIT_MS = 10000;
 const CRITICAL_IMAGE_URLS = ["/assets/shared/placeholder.png"];
+const CRITICAL_FONT_FAMILIES = ['"Adventure"', '"Model"'];
+
+const wait = (ms: number): Promise<void> =>
+	new Promise((resolve) => {
+		window.setTimeout(resolve, ms);
+	});
 
 const waitForPageLoad = (): Promise<void> => {
 	if (document.readyState === "complete") {
@@ -45,22 +51,23 @@ const waitForCriticalImages = (): Promise<void> =>
 		() => undefined,
 	);
 
-const waitForCriticalFonts = async (): Promise<void> => {
+const waitForCriticalFonts = (): Promise<void> => {
 	const fontSet = document.fonts;
 	if (!fontSet) {
 		return Promise.resolve();
 	}
 
-	const fontLoads = ['"Adventure"', '"Model"'].map((family) =>
+	const fontLoads = CRITICAL_FONT_FAMILIES.map((family) =>
 		fontSet.load(`1em ${family}`).catch(() => []),
 	);
 
-	await Promise.all([...fontLoads, fontSet.ready.catch(() => fontSet)]);
-	return undefined;
+	return Promise.all([...fontLoads, fontSet.ready.catch(() => fontSet)]).then(
+		() => undefined,
+	);
 };
 
 export const runBootLoader = async (): Promise<void> => {
-	const loader = document.querySelector<HTMLElement>("#boot-loader");
+	const loader = document.querySelector<HTMLElement>(BOOT_LOADER_SELECTOR);
 	if (!loader) {
 		return;
 	}
@@ -85,7 +92,7 @@ export const runBootLoader = async (): Promise<void> => {
 		return;
 	}
 
-	loader.classList.add("is-leaving");
+	loader.classList.add(BOOT_LEAVING_CLASS);
 	await wait(BOOT_FADE_OUT_MS);
 	loader.remove();
 };

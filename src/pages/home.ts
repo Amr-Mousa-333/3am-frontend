@@ -9,6 +9,7 @@ export class HomePage extends View<"section"> {
 	render(): DocumentFragment {
 		return this.tpl`
 			${new HomeHeroSection()}
+			<p style='margin-top: 1000px'>Hello</pstyle>
 		`;
 	}
 }
