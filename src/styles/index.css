@@ -6,6 +6,12 @@
 @import "./components/mediaCard.css";
 @import "./components/navbar.css";
 @import "./components/video-gallery.css";
+@import "./components/prod-card.css";
+@import "./components/scrollbar.css";
+@import "./components/crowd-favs.css";
+@import "./components/feat-grid.css";
+@import "./components/prod-view.css";
+@import "./sections/gear-shop/sections.css";
 @import "./utilities.css";
 
 @layer reset, base, layout, components, utilities;
