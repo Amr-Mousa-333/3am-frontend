@@ -29,6 +29,69 @@
 		--nav-blur-strength: 10px;
 	}
 
+	body.route-dusk-build
+		.nav-shell:is(.is-scrolled, :hover, :focus-within, .is-mobile-open) {
+		--nav-border-color: rgb(74 74 74);
+		--nav-surface-color: rgb(8 8 10 / 88%);
+		--nav-text-color: var(--color-white);
+		--nav-blur-strength: 10px;
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within) {
+		--nav-border-color: transparent;
+		--nav-surface-color: transparent;
+		--nav-text-color: var(--color-black);
+		--nav-blur-strength: 0px;
+	}
+
+	.nav-shell[data-top-contrast-mode="light"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within) {
+		--nav-border-color: transparent;
+		--nav-surface-color: transparent;
+		--nav-text-color: var(--color-white);
+		--nav-blur-strength: 0px;
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within)
+		:is(.ui-button--outline, .ui-button--text) {
+		--ui-button-text: var(--color-black);
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within)
+		.ui-button--outline {
+		color: var(--color-black);
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within)
+		.ui-button--text {
+		color: var(--color-black);
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within)
+		:is(.ui-button--outline, .ui-button--text)
+		> .ui-button__label {
+		color: var(--color-black);
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within)
+		:is(.nav-menu-trigger, .nav-link, .nav-mobile-link, .nav-mobile-top-sign-in)
+		> .ui-button__label {
+		color: var(--color-black);
+	}
+
 	.nav-inner {
 		position: relative;
 		width: 100%;
@@ -111,18 +174,21 @@
 	.nav-shell:not(.is-scrolled):not(:hover):not(:focus-within)
 		.nav-link-demo-drive {
 		/* Keep CTA flat in transparent-navbar state. */
-		background: #ffac00;
-		border-color: #ffac00;
+		--ui-button-cta-border-width: 0;
+		--ui-button-cta-inner: #f2a300;
+		background: #f2a300;
+		border-color: transparent;
 		color: var(--color-black);
 		box-shadow: none;
 		animation: none;
 	}
 
 	.nav-shell:not(.is-scrolled):not(:hover):not(:focus-within)
-		.nav-link-demo-drive::after {
-		/* Hide CTA shine strip in transparent-navbar state. */
-		opacity: 0;
-		animation: none;
+		.nav-link-demo-drive::before {
+		/* Keep CTA interior fully filled when border width is zero. */
+		inset: 0;
+		border-radius: inherit;
+		background: #f2a300;
 	}
 
 	.nav-shell:not(.is-scrolled):not(:hover):not(:focus-within)
@@ -157,6 +223,21 @@
 	.nav-mobile-toggle:is(:hover, :focus-visible) {
 		background-color: rgb(255 255 255 / 14%);
 		border-color: rgb(255 255 255 / 20%);
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu])
+		.nav-mobile-toggle:is(:hover, :focus-visible) {
+		background-color: rgb(0 0 0 / 10%);
+		border-color: rgb(0 0 0 / 18%);
+	}
+
+	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
+			.is-mobile-open
+		):not([data-active-menu]):not(:hover):not(:focus-within)
+		.nav-logo-image {
+		filter: brightness(0) saturate(100%);
 	}
 
 	.nav-mobile-toggle:focus-visible {

@@ -17,12 +17,46 @@ type Router = {
 type ResolvedRoute = {
 	key: string;
 	route: Route;
+	params?: Record<string, string>;
 };
 
 const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
+	// First try direct match
 	const direct = routes[path];
 	if (direct) {
 		return { key: path, route: direct };
+	}
+
+	// Then try pattern matching for dynamic routes
+	for (const [routePattern, route] of Object.entries(routes)) {
+		if (routePattern.includes(":")) {
+			const patternParts = routePattern.split("/");
+			const pathParts = path.split("/");
+
+			if (patternParts.length === pathParts.length) {
+				const params: Record<string, string> = {};
+				let matches = true;
+
+				for (let i = 0; i < patternParts.length; i++) {
+					const patternPart = patternParts[i];
+					const pathPart = pathParts[i];
+
+					if (patternPart.startsWith(":")) {
+						// This is a parameter
+						const paramName = patternPart.slice(1);
+						params[paramName] = pathPart;
+					} else if (patternPart !== pathPart) {
+						// Static parts must match exactly
+						matches = false;
+						break;
+					}
+				}
+
+				if (matches) {
+					return { key: routePattern, route, params };
+				}
+			}
+		}
 	}
 
 	const fallback = routes["/404"];
@@ -33,6 +67,7 @@ const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
 	return null;
 };
 
+// Singleton router instance for use across the app
 let globalRouter: Router | null = null;
 
 export const getRouter = (): Router => {
@@ -95,7 +130,8 @@ export const createRouter = (
 	};
 
 	const navigate = (path: string): void => {
-		if (window.location.pathname !== path) {
+		const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+		if (currentLocation !== path) {
 			window.history.pushState({}, "", path);
 		}
 		void render();
@@ -122,4 +158,11 @@ export const createRouter = (
 	const router: Router = { start, stop, navigate };
 	globalRouter = router;
 	return router;
+};
+
+// Singleton router instance for use across the app
+export let router: ReturnType<typeof createRouter> | null = null;
+
+export const setRouter = (instance: ReturnType<typeof createRouter>): void => {
+	router = instance;
 };

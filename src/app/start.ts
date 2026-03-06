@@ -45,16 +45,13 @@ export const startApp = (): void => {
 	main.className = "page";
 	app.appendChild(main);
 
-	const lazyMedia = createLazyMediaController({
-		// Preload one slide ahead horizontally to avoid placeholder flashes in carousels.
-		rootMargin: "300px 300px",
-	});
+	const lazyMedia = createLazyMediaController();
 	const router = createRouter(main, routes, (path) => {
 		navbar.setCurrentPath(path);
-		lazyMedia.scan(main); // scan on route change
+		lazyMedia.scan(main);
 	});
 
-	document.addEventListener("click", (event) => {
+	app.addEventListener("click", (event) => {
 		const link = getInternalLink(event);
 		if (!link) return;
 
@@ -65,6 +62,6 @@ export const startApp = (): void => {
 		router.navigate(href);
 	});
 
-	lazyMedia.scan(app); // initial scan
+	lazyMedia.scan(app);
 	router.start();
 };
