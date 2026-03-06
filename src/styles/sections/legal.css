@@ -1,0 +1,30 @@
+@layer sections {
+	.page-section.legal-page {
+		inline-size: 100%;
+		min-block-size: 100%;
+		padding-inline: clamp(1.4rem, 4vw, 4rem);
+		padding-block: clamp(11rem, 14vw, 14rem) clamp(4rem, 6vw, 6rem);
+		background: var(--background);
+		color: rgb(236 240 246 / 0.94);
+	}
+
+	.legal-page__shell {
+		inline-size: min(100%, 82rem);
+		margin-inline: auto;
+		display: grid;
+		gap: clamp(1.6rem, 2.4vw, 2.2rem);
+	}
+
+	.legal-page__title {
+		margin: 0;
+		font-size: clamp(3.4rem, 5.2vw, 5.4rem);
+		line-height: 0.95;
+	}
+
+	.legal-page__body {
+		margin: 0;
+		font-size: clamp(1.55rem, 1.5vw, 1.85rem);
+		line-height: 1.45;
+		color: rgb(217 224 234 / 0.86);
+	}
+}

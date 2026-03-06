@@ -1,0 +1,56 @@
+import type { VehicleLineupModel } from "@components/vehicleBuilder/types";
+import { View } from "@lib/view";
+import { DUSK_BUILD_LINEUP_MODELS } from "./buildJourneyConfig";
+
+type VehicleLineupSectionOptions = {
+	eyebrow?: string;
+	title?: string;
+	buildHref?: string;
+	models?: ReadonlyArray<VehicleLineupModel>;
+};
+
+export class DuskLineupSection extends View<"section"> {
+	private readonly eyebrow: string;
+	private readonly title: string;
+	private readonly buildHref: string;
+	private readonly models: ReadonlyArray<VehicleLineupModel>;
+
+	constructor(options: VehicleLineupSectionOptions = {}) {
+		super("section", {
+			className: ["page-section", "dusk-lineup"],
+			dataset: { gaSection: "dusk-lineup" },
+		});
+		this.eyebrow = options.eyebrow ?? "Build Comparison";
+		this.title = options.title ?? "Choose your DUSK build";
+		this.buildHref = options.buildHref ?? "/dusk/build";
+		this.models = options.models ?? DUSK_BUILD_LINEUP_MODELS;
+	}
+
+	render(): DocumentFragment {
+		return this.tpl`
+			<div class="dusk-lineup__shell">
+				<header class="dusk-lineup__header">
+					<p class="dusk-lineup__eyebrow">${this.eyebrow}</p>
+					<h2 class="dusk-lineup__title">${this.title}</h2>
+				</header>
+				<div class="dusk-lineup__grid">
+					${this.models.map(
+						(model) => this.tpl`
+							<article class="dusk-lineup__card">
+								<header class="dusk-lineup__card-head">
+									<h3>${model.name}</h3>
+									<p>${model.fromLabel}</p>
+								</header>
+								<a class="dusk-lineup__build-button" href="${this.buildHref}">Build</a>
+								<img src="${model.image}" alt="${model.name}" loading="lazy" />
+								<p class="dusk-lineup__description">${model.description}</p>
+								<p class="dusk-lineup__meta">${model.rangeLabel}</p>
+								<p class="dusk-lineup__meta">${model.performanceLabel}</p>
+							</article>
+						`,
+					)}
+				</div>
+			</div>
+		`;
+	}
+}
