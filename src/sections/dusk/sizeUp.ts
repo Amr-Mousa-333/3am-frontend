@@ -5,7 +5,7 @@ type SizeSpec = {
 	value: string;
 };
 
-type DuskSizeUpOptions = {
+export type VehicleSizeUpOptions = {
 	drawingsAriaLabel?: string;
 	frontImageSrc?: string;
 	frontImageAlt?: string;
@@ -23,7 +23,7 @@ const DEFAULT_SIZE_SPECS: ReadonlyArray<SizeSpec> = [
 	{ label: "Departure angle", value: "34.4°" },
 ];
 
-export class DuskSizeUpSection extends View<"section"> {
+export class VehicleSizeUpSection extends View<"section"> {
 	private readonly drawingsAriaLabel: string;
 	private readonly frontImageSrc: string;
 	private readonly frontImageAlt: string;
@@ -31,17 +31,19 @@ export class DuskSizeUpSection extends View<"section"> {
 	private readonly sideImageAlt: string;
 	private readonly specs: ReadonlyArray<SizeSpec>;
 
-	constructor(options: DuskSizeUpOptions = {}) {
+	constructor(options: VehicleSizeUpOptions = {}) {
 		super("section", {
 			className: ["page-section", "dusk-sizeup"],
 			dataset: { gaSection: "dusk-size-up" },
 		});
 		this.drawingsAriaLabel =
 			options.drawingsAriaLabel ?? "Dusk dimensions diagrams";
-		this.frontImageSrc = options.frontImageSrc ?? "/assets/dusk/blueprint/front.png";
+		this.frontImageSrc =
+			options.frontImageSrc ?? "/assets/dusk/blueprint/front.png";
 		this.frontImageAlt =
 			options.frontImageAlt ?? "Front view technical blueprint of Dusk";
-		this.sideImageSrc = options.sideImageSrc ?? "/assets/dusk/blueprint/side.png";
+		this.sideImageSrc =
+			options.sideImageSrc ?? "/assets/dusk/blueprint/side.png";
 		this.sideImageAlt =
 			options.sideImageAlt ?? "Side view technical blueprint of Dusk";
 		this.specs = options.specs ?? DEFAULT_SIZE_SPECS;
@@ -88,3 +90,7 @@ export class DuskSizeUpSection extends View<"section"> {
 		`;
 	}
 }
+
+// Backward-compatible aliases for existing imports.
+export type DuskSizeUpOptions = VehicleSizeUpOptions;
+export { VehicleSizeUpSection as DuskSizeUpSection };

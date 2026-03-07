@@ -1,9 +1,16 @@
 import { APP_TITLE } from "@content/constants";
 import type { ViewInstance } from "@lib/view";
 
+export type RouteParams = Record<string, string>;
+
+export type RouteCreateContext = {
+	path: string;
+	params: RouteParams;
+};
+
 type Route = {
 	title: string;
-	create: () => ViewInstance | Promise<ViewInstance>;
+	create: (context: RouteCreateContext) => ViewInstance | Promise<ViewInstance>;
 };
 
 export type RouteMap = Record<string, Route>;
@@ -17,14 +24,14 @@ type Router = {
 type ResolvedRoute = {
 	key: string;
 	route: Route;
-	params?: Record<string, string>;
+	params: RouteParams;
 };
 
 const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
 	// First try direct match
 	const direct = routes[path];
 	if (direct) {
-		return { key: path, route: direct };
+		return { key: path, route: direct, params: {} };
 	}
 
 	// Then try pattern matching for dynamic routes
@@ -34,7 +41,7 @@ const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
 			const pathParts = path.split("/");
 
 			if (patternParts.length === pathParts.length) {
-				const params: Record<string, string> = {};
+				const params: RouteParams = {};
 				let matches = true;
 
 				for (let i = 0; i < patternParts.length; i++) {
@@ -61,7 +68,7 @@ const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
 
 	const fallback = routes["/404"];
 	if (fallback) {
-		return { key: "/404", route: fallback };
+		return { key: "/404", route: fallback, params: {} };
 	}
 
 	return null;
@@ -99,7 +106,10 @@ export const createRouter = (
 		outlet.replaceChildren();
 
 		try {
-			const view = await resolved.route.create();
+			const view = await resolved.route.create({
+				path,
+				params: resolved.params,
+			});
 			if (token !== renderToken) {
 				view.destroy();
 				return;

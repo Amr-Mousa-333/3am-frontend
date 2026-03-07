@@ -2,12 +2,10 @@ import type {
 	VehicleBuildConfig,
 	VehicleLineupModel,
 } from "@components/vehicleBuilder/types";
-import {
-	DUSK_BUILD_CONFIG,
-} from "@sections/dusk/buildJourneyConfig";
+import { DUSK_BUILD_CONFIG as SHARED_BUILD_CONFIG } from "@sections/dusk/buildJourneyConfig";
 
 export const DAWN_BUILD_CONFIG: VehicleBuildConfig = {
-	...DUSK_BUILD_CONFIG,
+	...SHARED_BUILD_CONFIG,
 	id: "dawn-build",
 	eyebrow: "Build & Buy",
 	progressRootSegment: "dawn",

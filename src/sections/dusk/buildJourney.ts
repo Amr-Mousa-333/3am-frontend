@@ -9,7 +9,7 @@ type VehicleLineupSectionOptions = {
 	models?: ReadonlyArray<VehicleLineupModel>;
 };
 
-export class DuskLineupSection extends View<"section"> {
+export class VehicleLineupSection extends View<"section"> {
 	private readonly eyebrow: string;
 	private readonly title: string;
 	private readonly buildHref: string;
@@ -35,9 +35,8 @@ export class DuskLineupSection extends View<"section"> {
 				</header>
 				<div class="dusk-lineup__grid">
 					${this.models.map((model) => {
-						const [drivetrainLabel, accelerationLabel = "—"] = model.performanceLabel
-							.split("·")
-							.map((part) => part.trim());
+						const [drivetrainLabel, accelerationLabel = "—"] =
+							model.performanceLabel.split("·").map((part) => part.trim());
 						const comparisonSpecs = model.specs ?? [
 							{ label: "Range", value: model.rangeLabel },
 							{ label: "Drivetrain", value: drivetrainLabel },
@@ -73,3 +72,6 @@ export class DuskLineupSection extends View<"section"> {
 		`;
 	}
 }
+
+// Backward-compatible alias for existing imports.
+export { VehicleLineupSection as DuskLineupSection };

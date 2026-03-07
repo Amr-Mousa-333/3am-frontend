@@ -61,17 +61,17 @@
 		}
 	}
 
-	.dusk-page .dusk-spin-stage {
+	.model-page .dusk-spin-stage {
 		background: #000;
 		place-items: end center;
 		position: relative;
 	}
 
-	.dusk-page .dusk-spin-canvas {
+	.model-page .dusk-spin-canvas {
 		align-self: end;
 	}
 
-	.dusk-page .dusk-spin-facts {
+	.model-page .dusk-spin-facts {
 		position: absolute;
 		inset-inline: clamp(1.2rem, 2.6vw, 3.2rem);
 		inset-block-start: clamp(1.2rem, 2vw, 2.2rem);
@@ -79,7 +79,7 @@
 		pointer-events: none;
 	}
 
-	.dusk-page .dusk-spin-facts__list {
+	.model-page .dusk-spin-facts__list {
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -88,13 +88,13 @@
 		gap: clamp(0.8rem, 1.4vw, 1.4rem);
 	}
 
-	.dusk-page .dusk-spin-facts__item {
+	.model-page .dusk-spin-facts__item {
 		display: grid;
 		gap: 0.3rem;
 		align-content: start;
 	}
 
-	.dusk-page .dusk-spin-facts__label {
+	.model-page .dusk-spin-facts__label {
 		margin: 0;
 		font-size: clamp(1rem, 0.95vw, 1.25rem);
 		line-height: 1.15;
@@ -102,11 +102,11 @@
 		color: rgb(224 233 245 / 0.9);
 	}
 
-	.dusk-page .dusk-spin-facts__label sup {
+	.model-page .dusk-spin-facts__label sup {
 		font-size: 0.62em;
 	}
 
-	.dusk-page .dusk-spin-facts__value {
+	.model-page .dusk-spin-facts__value {
 		margin: 0;
 		font-size: clamp(2rem, 2.3vw, 3rem);
 		line-height: 0.9;
@@ -116,18 +116,18 @@
 	}
 
 	@media (max-width: 960px) {
-		.dusk-page .dusk-spin-facts__list {
+		.model-page .dusk-spin-facts__list {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 0.8rem 1.4rem;
 		}
 	}
 
 	@media (max-width: 560px) {
-		.dusk-page .dusk-spin-facts__list {
+		.model-page .dusk-spin-facts__list {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 
-		.dusk-page .dusk-spin-facts__value {
+		.model-page .dusk-spin-facts__value {
 			font-size: clamp(1.65rem, 6vw, 2.1rem);
 		}
 	}

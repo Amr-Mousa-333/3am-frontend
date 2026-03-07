@@ -1,4 +1,9 @@
+import { cartStore } from "@app/cart/cartStore";
+import { cartApi, type Product, productsApi } from "@lib/api";
+import { authStore } from "@lib/authStore";
 import type { CleanupBag } from "@lib/cleanup";
+import { getRouter } from "@lib/router";
+import { emitToast } from "@lib/toastBus";
 import type {
 	VehicleAccessoryOption,
 	VehicleBuildConfig,
@@ -58,6 +63,57 @@ const toZeroToHundredTime = (zeroToSixtySec: number): string =>
 
 const getNodeList = (root: ParentNode, selector: string): HTMLElement[] =>
 	Array.from(root.querySelectorAll<HTMLElement>(selector));
+
+const normalizeProductName = (value: string): string =>
+	value.trim().toLowerCase();
+
+const DEFAULT_DEPOSIT_PRODUCT_ID = 17;
+const DEPOSIT_PRODUCT_ID = (() => {
+	const parsed = Number.parseInt(
+		import.meta.env.VITE_DEPOSIT_PRODUCT_ID ?? "",
+		10,
+	);
+	return Number.isFinite(parsed) && parsed > 0
+		? parsed
+		: DEFAULT_DEPOSIT_PRODUCT_ID;
+})();
+
+const findDepositProduct = async (): Promise<Product | null> => {
+	try {
+		const productById = await productsApi.getById(DEPOSIT_PRODUCT_ID);
+		if (productById.id > 0) {
+			return productById;
+		}
+	} catch {
+		// Fall through to name matching.
+	}
+
+	const products = await productsApi.getAll();
+	const exactMatch = products.find(
+		(product) => normalizeProductName(product.name) === "deposit",
+	);
+	if (exactMatch) {
+		return exactMatch;
+	}
+
+	return (
+		products.find((product) =>
+			normalizeProductName(product.name).includes("deposit"),
+		) ?? null
+	);
+};
+
+const clearCartItemsForDeposit = async (): Promise<void> => {
+	const cart = await cartApi.getCart();
+	for (const item of cart.cartItems) {
+		await cartApi.removeFromCart(item.id);
+	}
+
+	const verificationCart = await cartApi.getCart();
+	if (verificationCart.cartItems.length > 0) {
+		throw new Error("Could not empty cart before adding deposit.");
+	}
+};
 
 const setText = (nodes: HTMLElement[], value: string): void => {
 	for (const node of nodes) {
@@ -419,6 +475,12 @@ export const setupVehicleBuildJourney = (
 		"[data-vehicle-build-monthly-price]",
 	);
 	const depositNodes = getNodeList(root, "[data-vehicle-build-deposit]");
+	const depositConsentField = root.querySelector<HTMLInputElement>(
+		"[data-vehicle-build-deposit-consent]",
+	);
+	const checkoutCta = root.querySelector<HTMLButtonElement>(
+		"[data-vehicle-build-checkout-cta]",
+	);
 
 	const stepOrder = config.steps.map((step) => step.id);
 	const getStepIndex = (stepId: VehicleBuildStepId): number =>
@@ -683,7 +745,8 @@ export const setupVehicleBuildJourney = (
 			return;
 		}
 
-		const nextImageLayerIndex = (activeMainImageLayerIndex + 1) % mainImages.length;
+		const nextImageLayerIndex =
+			(activeMainImageLayerIndex + 1) % mainImages.length;
 		const nextImage = mainImages[nextImageLayerIndex];
 		if (!nextImage) {
 			return;
@@ -851,8 +914,14 @@ export const setupVehicleBuildJourney = (
 
 		setText(stepTitleNodes, config.steps[getStepIndex(state.stepId)].title);
 		setText(modelNodes, config.model);
-		setText(rangeNodes, `${toRangeKilometers(wheel.rangeMiles)} km range (est.)`);
-		setText(accelNodes, `0-100 in ${toZeroToHundredTime(wheel.zeroToSixtySec)}`);
+		setText(
+			rangeNodes,
+			`${toRangeKilometers(wheel.rangeMiles)} km range (est.)`,
+		);
+		setText(
+			accelNodes,
+			`0-100 in ${toZeroToHundredTime(wheel.zeroToSixtySec)}`,
+		);
 		setText(paintNameNodes, paint.label);
 		setText(wheelNameNodes, wheel.label);
 		setText(wheelDescriptionNodes, wheel.description);
@@ -1124,6 +1193,70 @@ export const setupVehicleBuildJourney = (
 			}
 			activeFocusArea = "accessories";
 			render();
+		});
+	}
+
+	if (checkoutCta) {
+		let isSubmittingCheckout = false;
+
+		cleanup.on(checkoutCta, "click", async () => {
+			if (isSubmittingCheckout) {
+				return;
+			}
+
+			if (!authStore.getState().isAuthenticated) {
+				emitToast({
+					level: "warning",
+					title: "Sign in required",
+					message: "Please sign in before continuing to checkout.",
+				});
+				getRouter().navigate("/signin");
+				return;
+			}
+
+			if (depositConsentField && !depositConsentField.checked) {
+				emitToast({
+					level: "warning",
+					message: "Please confirm the non-refundable deposit to continue.",
+				});
+				return;
+			}
+
+			isSubmittingCheckout = true;
+			checkoutCta.disabled = true;
+			checkoutCta.setAttribute("aria-busy", "true");
+
+			try {
+				const depositProduct = await findDepositProduct();
+				if (!depositProduct) {
+					throw new Error(
+						"Could not find a product named deposit. Please add it in products first.",
+					);
+				}
+				if (depositProduct.quantity <= 0) {
+					throw new Error(
+						`Deposit product (id ${depositProduct.id}) is out of stock. Increase its quantity in dashboard.`,
+					);
+				}
+
+				await clearCartItemsForDeposit();
+				await cartApi.addToCart(depositProduct.id, 1);
+				await cartStore.loadCart();
+
+				getRouter().navigate("/checkout");
+			} catch (error) {
+				emitToast({
+					level: "error",
+					message:
+						error instanceof Error
+							? error.message
+							: "Unable to continue to checkout.",
+				});
+			} finally {
+				isSubmittingCheckout = false;
+				checkoutCta.disabled = false;
+				checkoutCta.removeAttribute("aria-busy");
+			}
 		});
 	}
 

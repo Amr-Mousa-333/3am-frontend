@@ -1,18 +1,18 @@
 import { View } from "@lib/view";
-import { DuskLineupSection } from "@sections/dusk/buildJourney";
-import { DuskHeroMediaSection } from "@sections/dusk/heroMedia";
-import { DuskSizeUpSection } from "@sections/dusk/sizeUp";
-import { DuskSpinCanvasSection } from "@sections/dusk/spinCanvas";
+import { VehicleLineupSection } from "@sections/dusk/buildJourney";
+import { VehicleHeroMediaSection } from "@sections/dusk/heroMedia";
+import { VehicleSizeUpSection } from "@sections/dusk/sizeUp";
+import { VehicleSpinCanvasSection } from "@sections/dusk/spinCanvas";
 
 export class DuskPage extends View<"section"> {
 	constructor() {
-		super("section", { className: "dusk-page" });
+		super("section", { className: ["dusk-page", "model-page"] });
 	}
 
 	render(): DocumentFragment {
 		return this.tpl`
 			<h1 class="visually-hidden">Model Dusk</h1>
-			${new DuskHeroMediaSection({
+			${new VehicleHeroMediaSection({
 				showcaseItems: [
 					{
 						kind: "video",
@@ -28,13 +28,13 @@ export class DuskPage extends View<"section"> {
 					},
 				],
 			})}
-			${new DuskSpinCanvasSection({
+			${new VehicleSpinCanvasSection({
 				modelName: "Dusk",
 				framePath: "/assets/cars/dusk/360",
 				frameCount: 120,
 			})}
-			${new DuskSizeUpSection()}
-			${new DuskLineupSection()}
+			${new VehicleSizeUpSection()}
+			${new VehicleLineupSection()}
 		`;
 	}
 }

@@ -303,7 +303,9 @@ export class VehicleBuildJourneySection extends View<"section"> {
 														<button
 															type="button"
 															class="dusk-build__interior-swatch ${
-																option.id === defaultInterior.id ? "is-active" : ""
+																option.id === defaultInterior.id
+																	? "is-active"
+																	: ""
 															}"
 															data-vehicle-build-interior="${option.id}"
 															aria-label="${option.label}"
@@ -477,10 +479,14 @@ export class VehicleBuildJourneySection extends View<"section"> {
 									</span>
 								</div>
 								<label class="dusk-build__checkbox-row">
-									<input type="checkbox" />
+									<input type="checkbox" data-vehicle-build-deposit-consent />
 									<span>I understand my deposit is non-refundable.</span>
 								</label>
-								<button type="button" class="dusk-build__checkout-cta">
+								<button
+									type="button"
+									class="dusk-build__checkout-cta"
+									data-vehicle-build-checkout-cta
+								>
 									Checkout -
 									<span data-vehicle-build-deposit>
 										${toUsdWhole(this.config.checkoutDeposit)}

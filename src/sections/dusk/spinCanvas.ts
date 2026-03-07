@@ -1,18 +1,18 @@
 import { View } from "@lib/view";
-import { setupDuskSpinCanvas } from "./spinCanvasBehavior";
+import { setupVehicleSpinCanvas } from "./spinCanvasBehavior";
 
-type DuskSpinCanvasSectionOptions = {
+export type VehicleSpinCanvasSectionOptions = {
 	modelName?: string;
 	framePath?: string;
 	frameCount?: number;
 };
 
-export class DuskSpinCanvasSection extends View<"section"> {
+export class VehicleSpinCanvasSection extends View<"section"> {
 	private readonly modelName: string;
 	private readonly framePath: string;
 	private readonly frameCount: number;
 
-	constructor(options: DuskSpinCanvasSectionOptions = {}) {
+	constructor(options: VehicleSpinCanvasSectionOptions = {}) {
 		super("section", {
 			className: ["page-section", "dusk-spin"],
 			dataset: { gaSection: "dusk-spin-canvas" },
@@ -23,7 +23,7 @@ export class DuskSpinCanvasSection extends View<"section"> {
 	}
 
 	protected override onMount(): void {
-		setupDuskSpinCanvas(this.element, this.cleanup);
+		setupVehicleSpinCanvas(this.element, this.cleanup);
 	}
 
 	render(): DocumentFragment {
@@ -64,3 +64,7 @@ export class DuskSpinCanvasSection extends View<"section"> {
 		`;
 	}
 }
+
+// Backward-compatible aliases for existing imports.
+export type DuskSpinCanvasSectionOptions = VehicleSpinCanvasSectionOptions;
+export { VehicleSpinCanvasSection as DuskSpinCanvasSection };

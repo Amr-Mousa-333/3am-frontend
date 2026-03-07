@@ -19,6 +19,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(
 	/\/+$/,
 	"",
 );
+const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = "3am_access_token";
@@ -68,6 +69,7 @@ type FetchOptions = {
 	body?: unknown;
 	headers?: Record<string, string>;
 	requiresAuth?: boolean;
+	useRawEndpoint?: boolean;
 };
 
 const GENERIC_VALIDATION_TITLE = "one or more validation errors occurred.";
@@ -387,7 +389,17 @@ async function fetchApi<T>(
 	endpoint: string,
 	options: FetchOptions = {},
 ): Promise<T> {
-	const { method = "GET", body, headers, requiresAuth = false } = options;
+	const {
+		method = "GET",
+		body,
+		headers,
+		requiresAuth = false,
+		useRawEndpoint = false,
+	} = options;
+	const requestUrl =
+		ABSOLUTE_URL_PATTERN.test(endpoint) || useRawEndpoint
+			? endpoint
+			: `${API_BASE_URL}${endpoint}`;
 
 	const isFormData =
 		typeof FormData !== "undefined" && body instanceof FormData;
@@ -418,7 +430,7 @@ async function fetchApi<T>(
 
 	let response: Response;
 	try {
-		response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+		response = await fetch(requestUrl, config);
 	} catch (error) {
 		// Network error - could be CORS, offline, or server down
 		const errorMessage =
@@ -436,7 +448,7 @@ async function fetchApi<T>(
 			if (newToken) {
 				(config.headers as Record<string, string>).Authorization =
 					`Bearer ${newToken}`;
-				response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+				response = await fetch(requestUrl, config);
 			}
 		} catch {
 			throw new Error("Authentication failed");
@@ -708,6 +720,7 @@ export const cartApi = {
 		fetchApi<void>("/items/clear", {
 			method: "DELETE",
 			requiresAuth: true,
+			useRawEndpoint: true,
 		}),
 
 	checkout: (): Promise<Order> =>

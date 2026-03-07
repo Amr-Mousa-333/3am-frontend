@@ -6,11 +6,15 @@ import { ToastStack } from "@components/toastStack";
 import { createLazyMediaController } from "@lib/lazyMedia";
 import { createRouter, setRouter } from "@lib/router";
 
+const BUILDER_ROUTE_PREFIXES = [
+	"/dusk/build",
+	"/dusk/buy",
+	"/dawn/build",
+	"/dawn/buy",
+] as const;
+
 const isBuilderRoute = (path: string): boolean =>
-	path.startsWith("/dusk/build") ||
-	path.startsWith("/dusk/buy") ||
-	path.startsWith("/dawn/build") ||
-	path.startsWith("/dawn/buy");
+	BUILDER_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix));
 
 const isGearsCatalogRoute = (path: string): boolean => path === "/gears";
 

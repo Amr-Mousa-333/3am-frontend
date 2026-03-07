@@ -80,7 +80,7 @@ const drawNativeSize = (
 	ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 };
 
-export const setupDuskSpinCanvas = (
+export const setupVehicleSpinCanvas = (
 	root: ParentNode,
 	cleanup: CleanupBag,
 ): void => {
@@ -187,12 +187,8 @@ export const setupDuskSpinCanvas = (
 			: BASE_PREFETCH_RADIUS;
 		requestFrame(normalized);
 		for (let distance = 1; distance <= prefetchRadius; distance += 1) {
-			requestFrame(
-				normalizeFrameIndex(normalized - distance, frameCount),
-			);
-			requestFrame(
-				normalizeFrameIndex(normalized + distance, frameCount),
-			);
+			requestFrame(normalizeFrameIndex(normalized - distance, frameCount));
+			requestFrame(normalizeFrameIndex(normalized + distance, frameCount));
 		}
 		if (normalized === activeFrame) {
 			return;
@@ -469,3 +465,6 @@ export const setupDuskSpinCanvas = (
 		schedulePreload();
 	}
 };
+
+// Backward-compatible alias for existing imports.
+export { setupVehicleSpinCanvas as setupDuskSpinCanvas };

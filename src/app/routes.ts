@@ -109,7 +109,7 @@ export const routes: RouteMap = {
 	"/contributors": {
 		title: "Contributors",
 		create: async () => {
-			const { ContributorsPage } = await import("@pages/contributors.ts");
+			const { ContributorsPage } = await import("@pages/contributors");
 			return new ContributorsPage();
 		},
 	},
@@ -119,12 +119,11 @@ export const routes: RouteMap = {
 	},
 	"/gears/product/:id": {
 		title: "Product",
-		create: async () => {
+		create: async ({ params }) => {
 			const { ProductPage } = await import("@pages/product");
-			// Extract ID from current path
-			const path = window.location.pathname;
-			const idMatch = path.match(/\/gears\/product\/(\d+)/);
-			const productId = idMatch ? parseInt(idMatch[1], 10) : 0;
+			const rawId = params.id ?? "";
+			const parsedId = Number.parseInt(rawId, 10);
+			const productId = Number.isFinite(parsedId) ? parsedId : 0;
 			return new ProductPage(productId);
 		},
 	},

@@ -1,6 +1,6 @@
 import { View } from "@lib/view";
 
-type DuskHeroShowcaseItem = {
+export type VehicleHeroShowcaseItem = {
 	kind: "image" | "video";
 	src: string;
 	alt?: string;
@@ -8,12 +8,12 @@ type DuskHeroShowcaseItem = {
 	label: string;
 };
 
-type DuskHeroMediaOptions = {
-	showcaseItems?: ReadonlyArray<DuskHeroShowcaseItem>;
+export type VehicleHeroMediaOptions = {
+	showcaseItems?: ReadonlyArray<VehicleHeroShowcaseItem>;
 	showHeroMedia?: boolean;
 };
 
-const DUSK_HERO_SHOWCASE_ITEMS: ReadonlyArray<DuskHeroShowcaseItem> = [
+const DEFAULT_HERO_SHOWCASE_ITEMS: ReadonlyArray<VehicleHeroShowcaseItem> = [
 	{
 		kind: "image",
 		src: "/assets/cars/dusk/showcase/0001.webp",
@@ -30,11 +30,11 @@ const SHOWCASE_SLIDE_EASING = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 const INTERACTIVE_TARGET_SELECTOR =
 	"a, button, input, select, textarea, [role='button']";
 
-export class DuskHeroMediaSection extends View<"section"> {
-	private readonly showcaseItems: ReadonlyArray<DuskHeroShowcaseItem>;
+export class VehicleHeroMediaSection extends View<"section"> {
+	private readonly showcaseItems: ReadonlyArray<VehicleHeroShowcaseItem>;
 	private readonly showHeroMedia: boolean;
 
-	constructor(options: DuskHeroMediaOptions = {}) {
+	constructor(options: VehicleHeroMediaOptions = {}) {
 		const className = ["page-section", "dusk-hero"];
 		if (options.showHeroMedia === false) {
 			className.push("dusk-hero--showcase-only");
@@ -43,7 +43,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 			className,
 			dataset: { gaSection: "dusk-hero-media" },
 		});
-		this.showcaseItems = options.showcaseItems ?? DUSK_HERO_SHOWCASE_ITEMS;
+		this.showcaseItems = options.showcaseItems ?? DEFAULT_HERO_SHOWCASE_ITEMS;
 		this.showHeroMedia = options.showHeroMedia ?? true;
 	}
 
@@ -158,8 +158,12 @@ export class DuskHeroMediaSection extends View<"section"> {
 		const viewport = slider.querySelector<HTMLElement>(
 			"[data-dusk-showcase-viewport]",
 		);
-		const track = slider.querySelector<HTMLElement>("[data-dusk-showcase-track]");
-		const controls = slider.querySelector<HTMLElement>(".dusk-hero-slider__controls");
+		const track = slider.querySelector<HTMLElement>(
+			"[data-dusk-showcase-track]",
+		);
+		const controls = slider.querySelector<HTMLElement>(
+			".dusk-hero-slider__controls",
+		);
 		const toggleButton = slider.querySelector<HTMLButtonElement>(
 			"[data-dusk-showcase-toggle]",
 		);
@@ -294,7 +298,8 @@ export class DuskHeroMediaSection extends View<"section"> {
 			if (secondSlide) {
 				const firstCenterX =
 					firstRealSlide.offsetLeft + firstRealSlide.offsetWidth / 2;
-				const secondCenterX = secondSlide.offsetLeft + secondSlide.offsetWidth / 2;
+				const secondCenterX =
+					secondSlide.offsetLeft + secondSlide.offsetWidth / 2;
 				const offsetStride = secondCenterX - firstCenterX;
 				slideStride = offsetStride > 0 ? offsetStride : slideWidth;
 			} else {
@@ -331,7 +336,10 @@ export class DuskHeroMediaSection extends View<"section"> {
 		};
 
 		const syncToggleButton = (): void => {
-			toggleButton.setAttribute("aria-pressed", isUserPaused ? "true" : "false");
+			toggleButton.setAttribute(
+				"aria-pressed",
+				isUserPaused ? "true" : "false",
+			);
 			toggleButton.setAttribute(
 				"aria-label",
 				isUserPaused ? "Resume showcase" : "Pause showcase",
@@ -418,7 +426,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 
 			// Clamp index to valid range (no wrapping)
 			const clampedIndex = Math.max(0, Math.min(slideCount - 1, nextIndex));
-			
+
 			if (clampedIndex === activeIndex) {
 				return;
 			}
@@ -479,7 +487,8 @@ export class DuskHeroMediaSection extends View<"section"> {
 			if (!activeSlide) {
 				return;
 			}
-			const activeCenterX = activeSlide.offsetLeft + activeSlide.offsetWidth / 2;
+			const activeCenterX =
+				activeSlide.offsetLeft + activeSlide.offsetWidth / 2;
 
 			event.preventDefault();
 
@@ -503,7 +512,8 @@ export class DuskHeroMediaSection extends View<"section"> {
 			}
 			const firstCenterX =
 				firstTrackSlide.offsetLeft + firstTrackSlide.offsetWidth / 2;
-			const lastCenterX = lastTrackSlide.offsetLeft + lastTrackSlide.offsetWidth / 2;
+			const lastCenterX =
+				lastTrackSlide.offsetLeft + lastTrackSlide.offsetWidth / 2;
 			const firstTranslate = viewport.clientWidth / 2 - firstCenterX;
 			const lastTranslate = viewport.clientWidth / 2 - lastCenterX;
 			const minTranslate = Math.min(firstTranslate, lastTranslate);
@@ -652,7 +662,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 									}
 									</figure>
 								`,
-							)}
+								)}
 							</div>
 						</div>
 						<div class="dusk-hero-slider__controls">
@@ -669,7 +679,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 												<span class="visually-hidden">Show ${item.label}</span>
 											</button>
 										`,
-									)}
+										)}
 								</div>
 								<button
 									type="button"
@@ -702,3 +712,8 @@ export class DuskHeroMediaSection extends View<"section"> {
 			`;
 	}
 }
+
+// Backward-compatible aliases for existing imports.
+export type DuskHeroShowcaseItem = VehicleHeroShowcaseItem;
+export type DuskHeroMediaOptions = VehicleHeroMediaOptions;
+export { VehicleHeroMediaSection as DuskHeroMediaSection };

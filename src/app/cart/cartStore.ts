@@ -203,10 +203,12 @@ class CartStore {
 			this.setState({ items: cart.cartItems, isLoading: false });
 		} catch (error) {
 			console.error("Failed to clear cart:", error);
+			const message = this.mapApiErrorToMessage(error, "Failed to clear cart.");
 			this.setState({
 				isLoading: false,
-				error: "Failed to clear cart.",
+				error: message,
 			});
+			emitToast({ message, level: "error" });
 		}
 	}
 
